@@ -1,0 +1,44 @@
+@import "tailwindcss";
+
+@theme {
+  --color-tunisian-blue: #003b71;
+  --color-tunisian-light-blue: #0081c6;
+  --color-tunisian-emerald: #009e60;
+  --color-tunisian-sand: #f0e6d2;
+  --color-tunisian-red: #c8102e;
+  --color-white: #ffffff;
+  --color-whitewash: #fcfcfc;
+}
+
+body {
+  margin: 0;
+  padding: 0;
+  font-family: 'Inter', system-ui, -apple-system, sans-serif;
+  background-color: var(--color-tunisian-sand);
+  color: #1a1a1a;
+  /* Optional: Background pattern inspired by Tunisian tiles */
+  background-image: radial-gradient(var(--color-tunisian-light-blue) 0.5px, transparent 0.5px), radial-gradient(var(--color-tunisian-light-blue) 0.5px, var(--color-tunisian-sand) 0.5px);
+  background-size: 20px 20px;
+  background-position: 0 0, 10px 10px;
+  opacity: 0.95;
+}
+
+/* Glassmorphism utilities */
+.glass-panel {
+  background: rgba(255, 255, 255, 0.85);
+  backdrop-filter: blur(8px);
+  -webkit-backdrop-filter: blur(8px);
+  border: 1px solid rgba(255, 255, 255, 0.3);
+  box-shadow: 0 4px 6px rgba(0, 59, 113, 0.1);
+}
+
+.card-back {
+  background-color: var(--color-tunisian-blue);
+  background-image: 
+    linear-gradient(45deg, var(--color-tunisian-light-blue) 25%, transparent 25%, transparent 75%, var(--color-tunisian-light-blue) 75%, var(--color-tunisian-light-blue)),
+    linear-gradient(45deg, var(--color-tunisian-light-blue) 25%, transparent 25%, transparent 75%, var(--color-tunisian-light-blue) 75%, var(--color-tunisian-light-blue));
+  background-size: 20px 20px;
+  background-position: 0 0, 10px 10px;
+  border: 4px solid white;
+  border-radius: 0.5rem;
+}
