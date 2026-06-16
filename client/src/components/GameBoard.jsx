@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import Card from './Card';
-import { dealCards, isValidMeld } from '../game/RamiLogic';
+import { dealCards, isValidMeld, findBestMelds, getBestDiscard } from '../game/RamiLogic';
 
 const GameBoard = ({ onExit }) => {
   const [playerHand, setPlayerHand] = useState([]);
@@ -97,33 +97,69 @@ const GameBoard = ({ onExit }) => {
     }
   };
 
-  // Simple AI Turn
+  // Smart AI Turn
   useEffect(() => {
     if (!isPlayerTurn && gameStatus === 'playing') {
-      setTimeout(() => {
-        // AI Logic: Draw from deck
-        const newDrawPile = [...drawPile];
-        const newHand = [...aiHand];
+      const timer = setTimeout(() => {
+        let newHand = [...aiHand];
+        let newDrawPile = [...drawPile];
+        let newDiscardPile = [...discardPile];
+        let newTableMelds = [...tableMelds];
         
-        if (newDrawPile.length > 0) {
+        // 1. Draw Phase
+        let drewFromDiscard = false;
+        if (newDiscardPile.length > 0) {
+          const topDiscard = newDiscardPile[newDiscardPile.length - 1];
+          // Check if topDiscard forms a meld with current hand
+          const testHand = [...newHand, topDiscard];
+          const bestMelds = findBestMelds(testHand);
+          
+          // If a meld is found involving the topDiscard, take it
+          const usedDiscard = bestMelds.melds.some(meld => meld.find(c => c.id === topDiscard.id));
+          if (usedDiscard) {
+            newHand.push(newDiscardPile.pop());
+            drewFromDiscard = true;
+          }
+        }
+        
+        // If didn't draw from discard, draw from stock
+        if (!drewFromDiscard && newDrawPile.length > 0) {
           newHand.push(newDrawPile.pop());
         }
         
-        // Very basic discard (randomly discards the first card)
-        const discard = newHand.shift();
+        // 2. Meld Phase
+        const { melds, remainingHand } = findBestMelds(newHand);
+        if (melds.length > 0) {
+          newTableMelds = [...newTableMelds, ...melds];
+          newHand = remainingHand;
+        }
         
+        // 3. Discard Phase
+        let discardCard = null;
+        if (newHand.length > 0) {
+          discardCard = getBestDiscard(newHand);
+          if (!discardCard) discardCard = newHand[0]; // fallback
+          
+          newHand = newHand.filter(c => c.id !== discardCard.id);
+          newDiscardPile.push(discardCard);
+        }
+        
+        // Update state
         setDrawPile(newDrawPile);
         setAiHand(newHand);
-        setDiscardPile([...discardPile, discard]);
+        setDiscardPile(newDiscardPile);
+        setTableMelds(newTableMelds);
         
         if (newHand.length === 0) {
-          setGameStatus('lost');
+          setGameStatus('lost'); // Player lost
         } else {
           setIsPlayerTurn(true);
         }
       }, 1500); // simulate thinking
+      
+      return () => clearTimeout(timer);
     }
-  }, [isPlayerTurn, gameStatus, drawPile, aiHand, discardPile]);
+  }, [isPlayerTurn, gameStatus, drawPile, aiHand, discardPile, tableMelds]);
 
 
   if (gameStatus === 'won') {

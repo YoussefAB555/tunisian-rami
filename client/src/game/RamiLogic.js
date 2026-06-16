@@ -120,3 +120,62 @@ export function calculateHandScore(cards) {
   }
   return score;
 }
+
+function getCombinations(array, size) {
+  const result = [];
+  function combine(start, currentCombo) {
+    if (currentCombo.length === size) {
+      result.push([...currentCombo]);
+      return;
+    }
+    for (let i = start; i < array.length; i++) {
+      currentCombo.push(array[i]);
+      combine(i + 1, currentCombo);
+      currentCombo.pop();
+    }
+  }
+  combine(0, []);
+  return result;
+}
+
+export function findBestMelds(hand) {
+  let remainingHand = [...hand];
+  const meldsFound = [];
+  let foundMeld = true;
+
+  // We loop until no more melds of size 3 or 4 can be found
+  while (foundMeld) {
+    foundMeld = false;
+    // Check size 4 first, then size 3 to maximize cards melded
+    for (const size of [4, 3]) {
+      if (remainingHand.length < size) continue;
+      const combos = getCombinations(remainingHand, size);
+      for (const combo of combos) {
+        if (isValidMeld(combo)) {
+          meldsFound.push(combo);
+          // Remove from remaining hand
+          remainingHand = remainingHand.filter(c => !combo.find(mc => mc.id === c.id));
+          foundMeld = true;
+          break; // restart while loop with new hand
+        }
+      }
+      if (foundMeld) break; 
+    }
+  }
+
+  return { melds: meldsFound, remainingHand };
+}
+
+export function getBestDiscard(hand) {
+  if (hand.length === 0) return null;
+  // Sort descending by value, but put Jokers at the end
+  const sorted = [...hand].sort((a, b) => {
+    if (a.isJoker && b.isJoker) return 0;
+    if (a.isJoker) return 1;
+    if (b.isJoker) return -1;
+    const valA = ['J','Q','K'].includes(a.value) ? 10 : (a.value === 'A' ? 1 : parseInt(a.value));
+    const valB = ['J','Q','K'].includes(b.value) ? 10 : (b.value === 'A' ? 1 : parseInt(b.value));
+    return valB - valA;
+  });
+  return sorted[0];
+}
